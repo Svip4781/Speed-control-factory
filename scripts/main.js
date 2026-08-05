@@ -49,7 +49,7 @@ Events.run(EventType.UpdateEvent, () => {
 
   // Принудительно обновляем позицию ползунка каждый кадр
   if (speedSlider.getParent() !== null) {
-    speedSlider.setPosition(50, 50);
+    speedSlider.setPosition(10, 10);
   }
 });
 
