@@ -1,0 +1,8 @@
+{
+  displayName: "[cyan]speed-control",
+  name: speed-control,
+  author: "[blue]Tih445",
+  description: "e",
+  minGameVersion: "158",
+  version: "[#00ff00]1.0.0",
+}
