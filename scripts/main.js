@@ -26,7 +26,7 @@ function initSpeedControl() {
 
   speedSlider.pack();
   // Гарантируем обновление позиции
-  speedSlider.setPosition(10, 10);
+  speedSlider.setPosition(50, 50);
 }
 
 // Основной цикл — обновляем прогресс производства
