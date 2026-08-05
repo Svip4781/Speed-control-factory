@@ -1,6 +1,6 @@
 const speedSlider = new Table();
 let speedMultiplier = 1.0;
-const blockProgress = new Map(); // Храним прогресс производства для каждого блока
+const blockProgress = new Map();
 
 function initSpeedControl() {
   speedSlider.clear();
@@ -25,45 +25,56 @@ function initSpeedControl() {
   }).size(80, 30).padLeft(10);
 
   speedSlider.pack();
+  // Гарантируем обновление позиции
+  speedSlider.setPosition(10, 10);
 }
 
 // Основной цикл — обновляем прогресс производства
 Events.run(EventType.UpdateEvent, () => {
   Groups.blocks.each(block => {
     if (block instanceof ProductionBlock && block.isActive()) {
-      // Получаем текущий прогресс производства
       const currentProgress = block.progress;
-      const totalProgress = block.warmup; // Используем warmup как индикатор прогресса
+      const totalProgress = block.warmup;
 
       if (totalProgress > 0) {
-        // Рассчитываем скорректированный прогресс
         const adjustedProgress = currentProgress * speedMultiplier;
-
-        // Сохраняем прогресс в нашей карте
         blockProgress.set(block, adjustedProgress);
 
-        // Имитируем ускорение/замедление через изменение внутреннего состояния
-        // Вместо прямого изменения productionTime — работаем с прогрессом
         if (adjustedProgress >= totalProgress) {
-          // Если прогресс завершён — имитируем завершение производства
           block.finishProduction();
         }
       }
     }
   });
+
+  // Принудительно обновляем позицию ползунка каждый кадр
+  if (speedSlider.getParent() !== null) {
+    speedSlider.setPosition(10, 10);
+  }
 });
 
 // Инициализация интерфейса
 Events.on(EventType.ClientLoadEvent, () => {
   Core.scene.add(speedSlider);
-  speedSlider.setPosition(10, 10);
   initSpeedControl();
+  speedSlider.setPosition(10, 10); // Гарантируем позицию
+  speedSlider.setVisible(true); // Явно показываем
 });
 
 // Перезагрузка при смене карты
-Events.on(EventType.WorldLoadEvent, initSpeedControl);
+Events.on(EventType.WorldLoadEvent, () => {
+  initSpeedControl();
+  if (!speedSlider.getParent()) {
+    Core.scene.add(speedSlider); // Добавляем, если не добавлен
+  }
+  speedSlider.setPosition(10, 10);
+  speedSlider.setVisible(true);
+});
 
 // Очистка при выгрузке карты
 Events.on(EventType.WorldUnloadEvent, () => {
   blockProgress.clear();
+  if (speedSlider.getParent() !== null) {
+    speedSlider.remove(); // Удаляем из сцены
+  }
 });
