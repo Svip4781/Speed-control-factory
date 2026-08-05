@@ -1,11 +1,8 @@
 const speedSlider = new Table();
 let speedMultiplier = 1.0;
+const originalSpeeds = new Map(); // Храним оригинальные скорости
 
-// Инициализация интерфейса
 function initSpeedControl() {
-  const core = Groups.player.first().getTeam().core();
-  if (!core) return;
-
   speedSlider.clear();
 
   // Заголовок
@@ -30,26 +27,33 @@ function initSpeedControl() {
   speedSlider.pack();
 }
 
-// Применение множителя ко всем заводам
 function applySpeedMultiplier(multiplier) {
   Groups.blocks.each(block => {
     if (block instanceof ProductionBlock) {
-      // Сохраняем оригинальный множитель скорости, если он ещё не сохранён
-      if (!block.originalSpeedMultiplier) {
-        block.originalSpeedMultiplier = block.productionTime;
+      // Сохраняем оригинальную скорость при первом вызове
+      if (!originalSpeeds.has(block)) {
+        originalSpeeds.set(block, block.productionTime);
       }
-      // Применяем новый множитель
-      block.productionTime = block.originalSpeedMultiplier * (1.0 / multiplier);
+
+      // Применяем множитель только если блок активен
+      if (block.isActive()) {
+        block.productionTime = originalSpeeds.get(block) * (1.0 / multiplier);
+      }
     }
   });
 }
 
-// Добавление интерфейса в меню строительства
+// Инициализация при загрузке клиента
 Events.on(EventType.ClientLoadEvent, () => {
   Core.scene.add(speedSlider);
-  speedSlider.setPosition(10, 10); // Левый верхний угол
+  speedSlider.setPosition(10, 10);
   initSpeedControl();
 });
 
-// Обновление интерфейса при смене карты
+// Перезагрузка при смене карты
 Events.on(EventType.WorldLoadEvent, initSpeedControl);
+
+// Сброс скоростей при выходе из игры или смене карты
+Events.on(EventType.WorldUnloadEvent, () => {
+  originalSpeeds.clear(); // Очищаем кэш оригинальных скоростей
+});
