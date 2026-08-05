@@ -1,7 +1,6 @@
 const speedSlider = new Table();
 let speedMultiplier = 1.0;
-const originalSpeeds = new Map(); // Храним оригинальные скорости
-const modifiedBlocks = new Set(); // Отслеживаем изменённые блоки
+const blockProgress = new Map(); // Храним прогресс производства для каждого блока
 
 function initSpeedControl() {
   speedSlider.clear();
@@ -16,7 +15,6 @@ function initSpeedControl() {
   const slider = speedSlider.slider(0.1, 3.0, 0.1, speedMultiplier, value => {
     speedMultiplier = value;
     speedLabel.setText(value.toFixed(2) + "x");
-    applySpeedMultiplier(value);
   }).width(200).get();
   slider.setValue(speedMultiplier);
 
@@ -24,43 +22,38 @@ function initSpeedControl() {
   speedSlider.button("Reset", () => {
     speedMultiplier = 1.0;
     slider.setValue(1.0);
-    resetAllSpeeds();
   }).size(80, 30).padLeft(10);
 
   speedSlider.pack();
 }
 
-function applySpeedMultiplier(multiplier) {
-  modifiedBlocks.clear(); // Очищаем список изменённых блоков
-
+// Основной цикл — обновляем прогресс производства
+Events.run(EventType.UpdateEvent, () => {
   Groups.blocks.each(block => {
-    if (block instanceof ProductionBlock && block.tile) {
-      // Сохраняем оригинальную скорость при первом вызове
-      if (!originalSpeeds.has(block)) {
-        originalSpeeds.set(block, block.productionTime);
-      }
+    if (block instanceof ProductionBlock && block.isActive()) {
+      // Получаем текущий прогресс производства
+      const currentProgress = block.progress;
+      const totalProgress = block.warmup; // Используем warmup как индикатор прогресса
 
-      // Применяем множитель только если блок активен и имеет корректное время производства
-      if (block.isActive() && originalSpeeds.get(block) > 0) {
-        const newSpeed = originalSpeeds.get(block) * (1.0 / multiplier);
-        block.productionTime = newSpeed;
-        modifiedBlocks.add(block); // Отмечаем как изменённый
+      if (totalProgress > 0) {
+        // Рассчитываем скорректированный прогресс
+        const adjustedProgress = currentProgress * speedMultiplier;
+
+        // Сохраняем прогресс в нашей карте
+        blockProgress.set(block, adjustedProgress);
+
+        // Имитируем ускорение/замедление через изменение внутреннего состояния
+        // Вместо прямого изменения productionTime — работаем с прогрессом
+        if (adjustedProgress >= totalProgress) {
+          // Если прогресс завершён — имитируем завершение производства
+          block.finishProduction();
+        }
       }
     }
   });
-}
+});
 
-function resetAllSpeeds() {
-  // Восстанавливаем оригинальные скорости для всех изменённых блоков
-  modifiedBlocks.forEach(block => {
-    if (originalSpeeds.has(block)) {
-      block.productionTime = originalSpeeds.get(block);
-    }
-  });
-  modifiedBlocks.clear();
-}
-
-// Инициализация при загрузке клиента
+// Инициализация интерфейса
 Events.on(EventType.ClientLoadEvent, () => {
   Core.scene.add(speedSlider);
   speedSlider.setPosition(10, 10);
@@ -70,8 +63,7 @@ Events.on(EventType.ClientLoadEvent, () => {
 // Перезагрузка при смене карты
 Events.on(EventType.WorldLoadEvent, initSpeedControl);
 
-// Сброс скоростей и очистка кэша при выгрузке карты
+// Очистка при выгрузке карты
 Events.on(EventType.WorldUnloadEvent, () => {
-  resetAllSpeeds();
-  originalSpeeds.clear();
+  blockProgress.clear();
 });
