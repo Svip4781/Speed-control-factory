@@ -1,9 +1,8 @@
 {
-	"name": "speed-adjuster"
-	"displayName": "Speed Adjuster"
-	"description": "Позволяет настраивать скорость заводов через craftTime."
-	"author": "Tih445"
-	"version": "1.0"
-	"minGameVersion": "150.1"
-	"hidden": false
+  name: "factory-speed-control"
+  displayName: "Factory Speed Control (Mobile)"
+  author: "Svip4781"
+  description: "Мод для настройки скорости работы заводов (адаптирован для телефона)"
+  version: "1.0"
+  minGameVersion: "150.1"
 }
