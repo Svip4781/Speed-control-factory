@@ -1,0 +1,34 @@
+{
+  "type": "LogicBlock",
+  "name": "Mobile Speed Controller",
+  "description": "Контроллер скорости для заводов (оптимизирован для телефона)",
+  "size": 2,
+  "update": true,
+  "config": "float",
+  "outputs": {
+    "speedMultiplier": {
+      "type": "float"
+    }
+  },
+  "instructions": [
+    {
+      "op": "set",
+      "a": "speedMultiplier",
+      "b": "config"
+    },
+    {
+      "op": "print",
+      "value": "Speed: "
+    },
+    {
+      "op": "print",
+      "value": "config"
+    },
+    {
+      "op": "printFlush",
+      "target": "@message1"
+    }
+  ]
+}
+
+}
