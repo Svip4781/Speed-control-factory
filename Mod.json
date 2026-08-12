@@ -1,0 +1,9 @@
+{
+	"name": "speed-adjuster"
+	"displayName": "Speed Adjuster"
+	"description": "Позволяет настраивать скорость заводов через craftTime."
+	"author": "Tih445"
+	"version": "1.0"
+	"minGameVersion": "150.1"
+	"hidden": false
+}
